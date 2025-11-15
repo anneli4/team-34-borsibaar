@@ -20,9 +20,18 @@ public class InventoryController {
 
     @GetMapping
     public List<InventoryResponseDto> getOrganizationInventory(
-            @RequestParam(required = false) Long categoryId) {
-        User user = SecurityUtils.getCurrentUser();
-        return inventoryService.getByOrganization(user.getOrganizationId(), categoryId);
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long organizationId) {
+        // If organizationId is provided, use it (for public access)
+        // Otherwise, get from authenticated user
+        Long orgId;
+        if (organizationId != null) {
+            orgId = organizationId;
+        } else {
+            User user = SecurityUtils.getCurrentUser();
+            orgId = user.getOrganizationId();
+        }
+        return inventoryService.getByOrganization(orgId, categoryId);
     }
 
     @GetMapping("/product/{productId}")

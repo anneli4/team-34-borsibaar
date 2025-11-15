@@ -70,10 +70,11 @@ public class SecurityConfig {
                         // Allow OAuth2 endpoints and public routes
                         .requestMatchers("/", "/error", "/oauth2/**", "/login/oauth2/code/**", "/auth/login/success")
                         .permitAll()
-                        // Public API endpoints (for now - you may want to secure these)
-                        .requestMatchers(HttpMethod.GET, "/api/organizations").permitAll()
+                        // Public API endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/organizations/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/organizations").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/inventory/**").permitAll()
                         // All other API requests require authentication
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

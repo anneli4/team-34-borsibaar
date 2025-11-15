@@ -25,9 +25,17 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<CategoryResponseDto> getAll() {
-        User user = SecurityUtils.getCurrentUser();
-        return categoryService.getAllByOrg(user.getOrganizationId());
+    public List<CategoryResponseDto> getAll(@RequestParam(required = false) Long organizationId) {
+        // If organizationId is provided, use it (for public access)
+        // Otherwise, get from authenticated user
+        Long orgId;
+        if (organizationId != null) {
+            orgId = organizationId;
+        } else {
+            User user = SecurityUtils.getCurrentUser();
+            orgId = user.getOrganizationId();
+        }
+        return categoryService.getAllByOrg(orgId);
     }
 
     @GetMapping("/{id}")
