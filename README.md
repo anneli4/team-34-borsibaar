@@ -158,7 +158,7 @@ server.forward-headers-strategy=framework
 * TypeScript
 
 
-## TODOs
+## TODOs and tech debt
 
 ### Backend
 
@@ -167,27 +167,25 @@ server.forward-headers-strategy=framework
     - example: (getProduct, setProduct) Inventory <-> Product (getInventory, setInventory)
     - frequently queried relationships should be loaded eagerly (product always needs inventory, transactions need inventory)
     - Fix code by removing extra repository queries, get inventory/transactions/categories etc directly from product object
-- Remove duplicate organization column in inventory
-  - Fix queries using organization_id from inventory table
+- Remove duplicate organization column in inventory (organization exists in the products table)
+  - Fix remaining queries using organization_id from inventory table
 - Create public item transaction history endpoint (needs login for now)
-- Create price increase/decrease amount columns for org (0.05€ default)
-- Create price correction setting column (how often, lookback window)
-- Skip price correction if not enabled for drink
-- Fix CategoryService org TODOs
+- Create different price increase/decrease amount columns for each organization (0.05€ default)
+- Create price correction setting column (how often is price correction run, lookback window)
 - ...
 
 ### Frontend
 - Public view queries data from all organizations
-  - Need to login for transaction history
+  - Need to log in for public transaction history
   - Should supply specific organization id in URL (or keep login)
   - Should fetch all drinks in 1 request
   - Compact view so everything fits on screen (3 columns + wide chart?)
-- Min/max prices in create view (currently do not exist?)
-- sorting in create view (newest first?)
-- Set current price in stock view (adjusted_price in inventory table)
+- Set min/max prices in create view
+- sorting in product list view (newest first?)
+- Set current price in stock view (adjusted_price in inventory table) so a drink can be cheaper/more expensive from the start
 - Enable/disable price correction checkbox for drinks
-- Increase/decrease price amount in org settings
-- Check if API returns not logged in response, reload app instead of error "<!doctype "... is not valid JSON
+- Set increase/decrease price amount in organization settings
+- Check if API returns not logged in response, reload app instead of displaying error "<!doctype "... is not valid JSON
 - ...
 
 ## Things that could be improved

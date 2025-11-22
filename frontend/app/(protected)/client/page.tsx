@@ -17,9 +17,18 @@ export type InvDto = {
 };
 
 const money = (n: number) =>
-  new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
-    n
-  );
+  new Intl.NumberFormat("et-EE", {
+    style: "currency",
+    currency: "EUR",
+  }).format(n);
+
+const sponsors = [
+  { name: "Red Bull", logo: "/redbull.svg" },
+  { name: "itük", logo: "/ituk_long_nottu_red.svg" },
+  { name: "alecoq", logo: "/alecoq.svg" },
+
+  
+];
 
 export default function ClientProductsByCategory() {
   const [cats, setCats] = useState<Category[]>([]);
@@ -31,13 +40,10 @@ export default function ClientProductsByCategory() {
     let alive = true;
 
     const load = async () => {
-      console.log("Loading products...");
       setLoading(true);
       try {
-        // TalTech ITÜK organization ID (hardcoded for public client view)
         const organizationId = 2;
 
-        // 1) Load categories
         const cRes = await fetch(
           `/api/backend/categories?organizationId=${organizationId}`,
           {
@@ -54,7 +60,6 @@ export default function ClientProductsByCategory() {
         if (!alive) return;
         setCats(categoryList);
 
-        // 2) Fetch inventory per category
         const fetches = categoryList.map(async (c) => {
           const res = await fetch(
             `/api/backend/inventory?categoryId=${c.id}&organizationId=${organizationId}`,
@@ -75,13 +80,12 @@ export default function ClientProductsByCategory() {
         const results = await Promise.all(fetches);
         if (!alive) return;
 
-        // Only keep categories that actually have products
         const grouped = Object.fromEntries(
           results.filter(([, arr]) => arr.length > 0)
         );
         setGroups(grouped);
         setErr(null);
-      } catch (e) {
+      } catch (e: any) {
         if (!alive) return;
         setErr(e?.message || "Failed to load products");
       } finally {
@@ -97,32 +101,48 @@ export default function ClientProductsByCategory() {
     };
   }, []);
 
+  const totalItems = Object.values(groups).reduce(
+    (sum, arr) => sum + arr.length,
+    0
+  );
+
   return (
-    <div className="min-h-screen w-full bg-[#141224] text-white p-6">
-      <div className="mx-auto grid grid-cols-12 gap-6">
-        <div className="col-span-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-black tracking-widest select-none">
-            TUDENGIBAAR
-          </h1>
-          <p className="text-sm text-[#a7a3c7] mt-1">
-            Product list by category
-          </p>
-        </div>
+    <div className="min-h-screen w-full bg-[#141224] text-white px-4 py-4 flex items-stretch justify-center">
+      {/* KESKMINE LAUD / BOARD */}
+      <div className="w-full">
+        {/* HEADER – LOGO + tekst */}
+        <header className="flex flex-col items-center justify-center gap-2 text-center">
+          <img
+            src="/tudengibaarlogo.png"
+            alt="Tudengibaar"
+            className="w-64 md:w-72 lg:w-90 xl:w-150 px-3 object-contain" 
+          />
+        </header>
 
-        <div className="col-span-12">
-          <div className="rounded-2xl bg-[#1b1830] border border-[#2a2640] p-4 md:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
-            {err && (
-              <div className="mb-4 text-sm text-red-200 bg-red-900/40 border border-red-800 rounded-lg px-3 py-2">
-                {err}
-              </div>
-            )}
+        {err && (
+          <div className="rounded-xl border border-red-700 bg-red-950/60 px-4 py-3 text-sm text-red-200">
+            {err}
+          </div>
+        )}
 
-            {loading && !cats?.length ? (
-              <div className="h-64 grid place-items-center">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#7c6cff]" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* PÕHIOSA: vasak tabelid, parem graafik */}
+        <main className="grid gap-6 lg:grid-cols-[1fr_1fr] items-stretch">
+          {/* VASAK – kategooriad (2 col) */}
+          <section className="rounded-2xl bg-[#1b1830] border border-[#2a2640] p-4 lg:p-5 flex flex-col">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-semibold tracking-wide">
+                Products by Category
+              </h2>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1 md:pr-2 max-h-[70vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {loading && !totalItems && (
+                  <div className="col-span-full flex h-40 items-center justify-center text-lg text-[#a7a3c7]">
+                    Loading…
+                  </div>
+                )}
+
                 {cats
                   .filter((c) => groups[c.name]?.length)
                   .map((c) => {
@@ -130,80 +150,134 @@ export default function ClientProductsByCategory() {
                     return (
                       <div
                         key={c.id}
-                        className="rounded-xl bg-[#201c31] border border-[#2a2640] p-4"
+                        className="rounded-2xl bg-[#201c31] border border-[#2a2640] p-3 lg:p-4"
                       >
-                        <div className="text-[#e9e6ff] font-extrabold tracking-wider text-lg mb-3">
-                          {c.name.toUpperCase()}
+                        <div className="mb-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="h-6 w-1.5 rounded-full bg-gradient-to-b from-purple-400 to-fuchsia-400" />
+                            <h3 className="text-xs lg:text-sm font-semibold tracking-[0.18em] text-[#e9e6ff] uppercase">
+                              {c.name}
+                            </h3>
+                          </div>
+                          <span className="text-xs text-[#8b88a9]">
+                            {items.length} items
+                          </span>
                         </div>
-                        <ul className={clsx("space-y-2")}>
-                          {items
-                            .slice()
-                            .sort((a, b) =>
-                              a.productName.localeCompare(b.productName)
-                            )
-                            .map((p) => (
-                              <li
-                                key={`${c.id}-${p.productId}`}
-                                className="flex items-center justify-between rounded-lg bg-[#251f3a] border border-[#2c2944] px-4 py-2"
-                              >
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <span
-                                    className="w-1 h-5 rounded-full bg-[#fe8f66]"
-                                    aria-hidden
-                                  />
-                                  <span className="font-medium text-[#f1efff] truncate">
-                                    {p.productName}
-                                  </span>
-                                </div>
-                                <div
-                                  className={clsx(
-                                    "flex items-center gap-4 shrink-0",
-                                    {
-                                      "transition-all duration-300": true,
-                                      "pointer-events-none blur-[2px]": loading,
-                                      "blur-none": !loading,
-                                    }
-                                  )}
-                                >
-                                  {/* Price */}
-                                  <span className="text-sm font-semibold text-[#f1efff] tabular-nums">
-                                    {money(Number(p.unitPrice))}
-                                  </span>
 
-                                  <span
-                                    className={clsx(
-                                      "text-xs font-semibold tabular-nums w-[55px]",
-                                      {
-                                        "text-green-400 animate-bounce":
-                                          p.unitPrice < p.basePrice,
-                                        'text-red-400 before:content-["+"] animate-pulse':
-                                          p.unitPrice > p.basePrice,
-                                        'text-white/20 before:content-["+"]':
-                                          p.unitPrice == p.basePrice,
-                                      }
-                                    )}
+                        <table className="w-full text-xs lg:text-sm border-separate border-spacing-y-1">
+                          <thead>
+                            <tr className="text-[9px] lg:text-[10px] uppercase tracking-[0.16em] text-[#7a7690]">
+                              <th className="px-2 py-1 text-left">Product</th>
+                              <th className="px-2 py-1 text-right">Price</th>
+                              <th className="px-2 py-1 text-right">Δ%</th>
+                              <th className="px-2 py-1 text-right">Base</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items
+                              .slice()
+                              .sort((a, b) =>
+                                a.productName.localeCompare(b.productName)
+                              )
+                              .map((p) => {
+                                const diff = p.unitPrice - p.basePrice;
+                                const diffPct =
+                                  p.basePrice !== 0
+                                    ? (diff / p.basePrice) * 100
+                                    : 0;
+
+                                const isUp = diff > 0;
+                                const isDown = diff < 0;
+
+                                return (
+                                  <tr
+                                    key={p.productId}
+                                    className="bg-[#251f3a] hover:bg-[#2b2446] transition-colors"
                                   >
-                                    {money(Number(p.unitPrice - p.basePrice))}
-                                  </span>
-                                </div>
-                              </li>
-                            ))}
-                        </ul>
+                                    <td className="px-2 py-1">
+                                      <span className="font-medium truncate block">
+                                        {p.productName}
+                                      </span>
+                                    </td>
+                                    <td className="px-2 py-1 text-right tabular-nums">
+                                      {money(p.unitPrice)}
+                                    </td>
+                                    <td
+                                      className={clsx(
+                                        "px-2 py-1 text-right tabular-nums font-semibold",
+                                        isUp && "text-emerald-400",
+                                        isDown && "text-red-400",
+                                        !isUp &&
+                                          !isDown &&
+                                          "text-[#8b88a9]"
+                                      )}
+                                    >
+                                      {diff === 0 ? (
+                                        "—"
+                                      ) : (
+                                        <>
+                                          {diff > 0 ? "▲" : "▼"}{" "}
+                                          {Math.abs(diffPct).toFixed(1)}%
+                                        </>
+                                      )}
+                                    </td>
+                                    <td className="px-2 py-1 text-right tabular-nums text-[#c2bedc]">
+                                      {money(p.basePrice)}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
                       </div>
                     );
                   })}
 
-                <Chart groups={groups} />
-
-                {Object.keys(groups).length === 0 && (
-                  <div className="text-center text-[#b7b4c7] py-10">
+                {!totalItems && !loading && (
+                  <div className="col-span-full flex h-40 items-center justify-center text-lg text-[#a7a3c7]">
                     No products to display
                   </div>
                 )}
               </div>
-            )}
+            </div>
+          </section>
+
+          {/* PAREM – graafik samas boardis */}
+          <section className="rounded-2xl border border-[#2a2640] bg-[#1b1830] p-4 lg:p-5 flex flex-col">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg md:text-xl font-semibold tracking-wide">
+                Price History
+              </h2>
+            <span className="text-[10px] md:text-xs text-[#8b88a9] uppercase">
+                Rotating products
+              </span>
+            </div>
+            <div className="flex-1 h-[50vh] md:h-[60vh]">
+              <Chart groups={groups} />
+            </div>
+          </section>
+        </main>
+
+        {/* FOOTER – sponsorid, aga ikka sama kaardi sees */}
+        <footer className="mt-10 flex justify-center">
+          <div className="inline-flex items-center gap-5 rounded-full bg-[#191530] px-6 py-3 border border-[#2a2640]">
+            <span className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-[#8b88a9]">
+              Sponsored by
+            </span>
+            {sponsors.map((s) => (
+              <div
+                key={s.name}
+                className="flex items-center justify-center h-10 w-30 md:w-32"
+              >
+                <img
+                  src={s.logo}
+                  alt={s.name}
+                  className="max-h-10 max-w-full object-contain opacity-90 hover:opacity-100 transition-opacity"
+                />
+              </div>
+            ))}
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   );
